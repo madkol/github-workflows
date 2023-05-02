@@ -1,0 +1,114 @@
+name: build-push-update-tag
+
+env:
+  REGISTRY: jed.ocir.io
+
+on:
+  workflow_call:
+    inputs:
+      AUTH_URL:
+        required: false
+        type: string
+      ADMIN_URL:
+        required: false
+        type: string
+
+    secrets:
+      REGISTRY_USERNAME:
+        required: true
+      REGISTRY_TOKEN:
+        required: true
+      INFRA_REPO_SSH_KEY:
+        required: true
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    outputs:
+      sha8: ${{ steps.get-sha8.outputs.sha8 }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Get short SHA
+        id: get-sha8
+        run: |
+          short_sha=$(echo ${GITHUB_SHA} | cut -c1-8)
+          echo "sha8=$short_sha" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}
+
+      - name: Login to REGISTRY
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            AUTH_URL=${{ inputs.AUTH_URL }}
+            ADMIN_URL=${{ inputs.ADMIN_URL }}
+  update-tag:
+    runs-on: ubuntu-latest
+    needs: build-push
+    steps:
+
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v3
+        with:
+          repository: madkol/madkhol-deployment
+          ssh-key: "${{ secrets.INFRA_REPO_SSH_KEY }}"
+        if: github.event_name != 'pull_request'
+
+      - name: Split repository name
+        uses: jungwinter/split@v2
+        id: split-repo-name
+        with:
+          msg: ${{ github.event.repository.name }}
+          separator: '-'
+          maxsplit: '1'
+
+      - name: Update manifests images tag for dev
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        run: |
+          # Change Helm values image tag
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' dev.yaml
+        if: github.ref_name == 'dev'
+
+      - name: Update manifests images tag for prod
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        run: |
+          # Change Helm values image tag
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' staging.yaml
+        if: github.ref_name == 'main'
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply automatic changes for helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        if: github.event_name != 'pull_request'
+
+
