@@ -93,8 +93,8 @@ jobs:
             AUTH_URL=${{ inputs.AUTH_URL }}
             ADMIN_URL=${{ inputs.ADMIN_URL }}
             BASE_URL=${{ inputs.BASE_URL }}
-            BASE_URL=${{ inputs.SITE_URL }}
-            BASE_URL=${{ inputs.API_URL }}
+            SITE_URL=${{ inputs.SITE_URL }}
+            API_URL=${{ inputs.API_URL }}
             REACT_APP_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'development' }}
             REACT_APP_SENTRY_DSN=${{ secrets.REACT_APP_SENTRY_DSN }}
             REACT_APP_SENTRY_DEBUG=${{ inputs.REACT_APP_SENTRY_DEBUG }}
