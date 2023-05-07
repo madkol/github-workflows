@@ -131,7 +131,7 @@ jobs:
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
           # Change Helm values image tag
-          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' staging.yaml
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' stg.yaml
         if: github.ref_name == 'main'
 
       - uses: stefanzweifel/git-auto-commit-action@v4
