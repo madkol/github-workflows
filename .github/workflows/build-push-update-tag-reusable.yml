@@ -12,6 +12,23 @@ on:
       ADMIN_URL:
         required: false
         type: string
+      BASE_URL:
+        required: false
+        type: string
+      SITE_URL:
+        required: false
+        type: string
+      API_URL:
+        required: false
+        type: string
+      REACT_APP_SENTRY_DEBUG:
+        required: false
+        type: string
+        default: 'false'
+      REACT_APP_SENTRY_TRACES_SAMPLE_RATE:
+        required: false
+        type: string
+        default: '0.1'
 
     secrets:
       REGISTRY_USERNAME:
@@ -21,6 +38,8 @@ on:
       INFRA_REPO_SSH_KEY:
         required: true
       NPM_TOKEN:
+        required: true
+      REACT_APP_SENTRY_DSN:
         required: true
 
 jobs:
@@ -68,10 +87,19 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Couldn't find a way to make this accept any arbitrary variables so it will assign all possible variables and in case if it's null it's harmless  
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             AUTH_URL=${{ inputs.AUTH_URL }}
             ADMIN_URL=${{ inputs.ADMIN_URL }}
+            BASE_URL=${{ inputs.BASE_URL }}
+            BASE_URL=${{ inputs.SITE_URL }}
+            BASE_URL=${{ inputs.API_URL }}
+            REACT_APP_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'development' }}
+            REACT_APP_SENTRY_DSN=${{ secrets.REACT_APP_SENTRY_DSN }}
+            REACT_APP_SENTRY_DEBUG=${{ inputs.REACT_APP_SENTRY_DEBUG }}
+            REACT_APP_SENTRY_TRACES_SAMPLE_RATE=${{ inputs.REACT_APP_SENTRY_TRACES_SAMPLE_RATE }}
+
   update-tag:
     runs-on: ubuntu-latest
     needs: build-push
@@ -110,5 +138,3 @@ jobs:
         with:
           commit_message: Apply automatic changes for helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         if: github.event_name != 'pull_request'
-
-
