@@ -6,26 +6,21 @@ env:
 on:
   workflow_call:
     inputs:
-      AUTH_URL:
+      BASE_API_URL:
+        required: true
+        type: string
+      SENTRY_IGNORE_ERRORS:
         required: false
         type: string
-      ADMIN_URL:
-        required: false
-        type: string
-      BASE_URL:
-        required: false
-        type: string
-      SITE_URL:
-        required: false
-        type: string
-      API_URL:
-        required: false
-        type: string
-      REACT_APP_SENTRY_DEBUG:
+      SENTRY_DEBUG:
         required: false
         type: string
         default: 'false'
-      REACT_APP_SENTRY_TRACES_SAMPLE_RATE:
+      SENTRY_TRACES_SAMPLE_RATE:
+        required: false
+        type: string
+        default: '0.1'
+      REPLAYS_ON_ERROR_SAMPLE_RATE:
         required: false
         type: string
         default: '0.1'
@@ -39,7 +34,7 @@ on:
         required: true
       NPM_TOKEN:
         required: true
-      REACT_APP_SENTRY_DSN:
+      SENTRY_DSN:
         required: false
 
 jobs:
@@ -87,18 +82,17 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Couldn't find a way to make this accept any arbitrary variables so it will assign all possible variables and in case if it's null it's harmless  
+          # Couldn't find a way to make this accept any arbitrary variables so it will assign all possible variables and in case if it's null it's harmless
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
-            AUTH_URL=${{ inputs.AUTH_URL }}
-            ADMIN_URL=${{ inputs.ADMIN_URL }}
-            BASE_URL=${{ inputs.BASE_URL }}
-            SITE_URL=${{ inputs.SITE_URL }}
-            API_URL=${{ inputs.API_URL }}
+            BASE_API_URL=${{ inputs.BASE_API_URL }}
+            REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'development' }}
-            REACT_APP_SENTRY_DSN=${{ secrets.REACT_APP_SENTRY_DSN }}
-            REACT_APP_SENTRY_DEBUG=${{ inputs.REACT_APP_SENTRY_DEBUG }}
-            REACT_APP_SENTRY_TRACES_SAMPLE_RATE=${{ inputs.REACT_APP_SENTRY_TRACES_SAMPLE_RATE }}
+            REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            REACT_APP_SENTRY_DEBUG=${{ inputs.SENTRY_DEBUG }}
+            REACT_APP_SENTRY_IGNORE_ERRORS=${{ inputs.SENTRY_IGNORE_ERRORS }}
+            REACT_APP_SENTRY_TRACES_SAMPLE_RATE=${{ inputs.SENTRY_TRACES_SAMPLE_RATE }}
+            REACT_APP_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE=${{ inputs.REPLAYS_ON_ERROR_SAMPLE_RATE }}
 
   update-tag:
     runs-on: ubuntu-latest
