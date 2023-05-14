@@ -6,6 +6,9 @@ env:
 on:
   workflow_call:
     inputs:
+      SITE_URL:
+        required: false
+        type: string
       BASE_API_URL:
         required: false
         type: string
@@ -85,6 +88,7 @@ jobs:
           # Couldn't find a way to make this accept any arbitrary variables so it will assign all possible variables and in case if it's null it's harmless
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'development' }}
