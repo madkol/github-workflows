@@ -105,7 +105,7 @@ jobs:
       - name: Checkout GitOps repository
         uses: actions/checkout@v3
         with:
-          repository: madkol/madkhol-deployment
+          repository: madkol/Infrastructure
           ssh-key: "${{ secrets.INFRA_REPO_SSH_KEY }}"
         if: github.event_name != 'pull_request'
 
