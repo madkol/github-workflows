@@ -2,6 +2,12 @@ name: build-push-update-tag
 
 env:
   REGISTRY: jed.ocir.io
+  env_var_name_mapping: >
+    {
+      "prod": "production",
+      "stg": "staging",
+      "dev": "development",
+    }
 
 on:
   workflow_call:
@@ -91,7 +97,7 @@ jobs:
             SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
-            REACT_APP_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'development' }}
+            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] }}
             REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             REACT_APP_SENTRY_DEBUG=${{ inputs.SENTRY_DEBUG }}
             REACT_APP_SENTRY_IGNORE_ERRORS=${{ inputs.SENTRY_IGNORE_ERRORS }}
