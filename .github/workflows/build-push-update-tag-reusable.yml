@@ -33,6 +33,18 @@ on:
         required: false
         type: string
         default: '0.1'
+      REACT_APP_APPLE_PAY_VERSION_NUMBER:
+        required: false
+        type: string
+        default: '3'
+      REACT_APP_APPLE_PAY_MERCHANT_ID:
+        required: false
+        type: string
+        default: 'madkhol'
+      REACT_APP_APPLE_PAY_MERCHANT_DISPLAY:
+        required: false
+        type: string
+        default: 'Madkhol'
 
     secrets:
       REGISTRY_USERNAME:
