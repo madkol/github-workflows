@@ -89,7 +89,7 @@ jobs:
           images: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}
 
       - name: Login to REGISTRY
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
@@ -100,7 +100,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name) }}
           tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
           # Couldn't find a way to make this accept any arbitrary variables, so it will assign all possible variables
@@ -109,7 +109,7 @@ jobs:
             SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
-            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] }}
+            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] || github.ref_name }}
             REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             REACT_APP_SENTRY_DEBUG=${{ inputs.SENTRY_DEBUG }}
             REACT_APP_SENTRY_IGNORE_ERRORS=${{ inputs.SENTRY_IGNORE_ERRORS }}
@@ -159,4 +159,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply automatic changes for helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
