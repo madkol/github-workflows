@@ -62,17 +62,22 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     outputs:
-      sha8: ${{ steps.get-sha8.outputs.sha8 }}
+      sha8: ${{ steps.prepare-vars.outputs.sha8 }}
+      ref_name_truncated: ${{ steps.prepare-vars.outputs.ref_name_truncated }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Get short SHA
-        id: get-sha8
+      - name: Prepare variables
+        id: prepare-vars
         run: |
           short_sha=$(echo ${GITHUB_SHA} | cut -c1-8)
           echo "sha8=$short_sha" >> $GITHUB_OUTPUT
+
+          # Remove /feature Prefix from ${{ github.ref_name }}
+          ref_name=${github.ref_name#/feature};
+          echo "ref_name_truncated=$ref_name" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -101,7 +106,7 @@ jobs:
         with:
           file: Dockerfile
           push: ${{ startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name) }}
-          tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
+          tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.prepare-vars.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
           # Couldn't find a way to make this accept any arbitrary variables, so it will assign all possible variables
           build-args: |
@@ -109,7 +114,7 @@ jobs:
             SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
-            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] || github.ref_name }}
+            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] || steps.prepare-vars.outputs.ref_name_truncated }}
             REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             REACT_APP_SENTRY_DEBUG=${{ inputs.SENTRY_DEBUG }}
             REACT_APP_SENTRY_IGNORE_ERRORS=${{ inputs.SENTRY_IGNORE_ERRORS }}
@@ -138,14 +143,14 @@ jobs:
           separator: '-'
           maxsplit: '1'
 
-      - name: Update manifests images tag for feature branch ${{ github.ref_name }}
+      - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
-          if [[ ! -e ${{ github.ref_name }}.yaml ]]; then
-            echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ github.ref_name }}.yaml
+          if [[ ! -e ${{ needs.build-push.outputs.ref_name_truncated }}.yaml ]]; then
+            echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           else
             # Change Helm values image tag
-            sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ github.ref_name }}.yaml
+            sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           fi
         if: startsWith(github.ref_name, 'feature/')
 
