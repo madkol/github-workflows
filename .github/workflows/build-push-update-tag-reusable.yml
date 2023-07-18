@@ -138,26 +138,23 @@ jobs:
           separator: '-'
           maxsplit: '1'
 
-      - name: Update manifests images tag for dev
+      - name: Update manifests images tag for feature branch ${{ github.ref_name }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
-          # Change Helm values image tag
-          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' dev.yaml
-        if: github.ref_name == 'dev'
+          if [[ ! -e ${{ github.ref_name }}.yaml ]]; then
+            echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ github.ref_name }}.yaml
+          else
+            # Change Helm values image tag
+            sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ github.ref_name }}.yaml
+          fi
+        if: startsWith(github.ref_name, 'feature/')
 
-      - name: Update manifests images tag for stg
+      - name: Update manifests images tag for env branch ${{ github.ref_name }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
           # Change Helm values image tag
-          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' stg.yaml
-        if: github.ref_name == 'stg'
-
-      - name: Update manifests images tag for prod
-        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
-        run: |
-          # Change Helm values image tag
-          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' prod.yaml
-        if: github.ref_name == 'prod'
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ github.ref_name }}.yaml
+        if: contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
