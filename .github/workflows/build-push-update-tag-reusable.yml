@@ -76,8 +76,9 @@ jobs:
           echo "sha8=$short_sha" >> $GITHUB_OUTPUT
 
           # Remove /feature Prefix from ${{ github.ref_name }}
-          ref_name=${${{ github.ref_name }}#/feature};
-          echo "ref_name_truncated=$ref_name" >> $GITHUB_OUTPUT
+          ref_name=${{ github.ref_name }}
+          ref_name_truncated=${ref_name#feature/}
+          echo "ref_name_truncated=$ref_name_truncated" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
