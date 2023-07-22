@@ -144,13 +144,14 @@ jobs:
           maxsplit: '1'
 
       - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
-        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
         run: |
-          if [[ ! -e ${{ needs.build-push.outputs.ref_name_truncated }}.yaml ]]; then
-            echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ needs.build-push.outputs.ref_name_truncated }}.yaml
+          ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml
+          if [[ ! -e ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml ]]; then
+            echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           else
             # Change Helm values image tag
-            sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ needs.build-push.outputs.ref_name_truncated }}.yaml
+            sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           fi
         if: startsWith(github.ref_name, 'feature/')
 
