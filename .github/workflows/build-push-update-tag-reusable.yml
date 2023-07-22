@@ -146,13 +146,19 @@ jobs:
       - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
         run: |
-          ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml
           if [[ ! -e ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml ]]; then
             echo -e 'image:\n  tag: "${{ needs.build-push.outputs.sha8 }}"' > ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           else
             # Change Helm values image tag
             sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           fi
+          
+          if [[ ! -e defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml ]]; then
+              curl -o /usr/local/bin/gomplate -sSL https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_linux-amd64-slim
+              chmod 755 /usr/local/bin/gomplate
+...           ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml
+          fi
+
         if: startsWith(github.ref_name, 'feature/')
 
       - name: Update manifests images tag for env branch ${{ github.ref_name }}
