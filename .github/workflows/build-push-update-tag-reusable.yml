@@ -157,7 +157,7 @@ jobs:
           if [[ ! -e defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml ]]; then
               curl -o /usr/local/bin/gomplate -sSL https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_linux-amd64-slim
               chmod 755 /usr/local/bin/gomplate
-              ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}-env.yaml
+              ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           fi
 
         if: startsWith(github.ref_name, 'feature/')
