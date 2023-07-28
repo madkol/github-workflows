@@ -166,6 +166,16 @@ jobs:
           fi
         if: startsWith(github.ref_name, 'feature/')
 
+      - name: Deploy Application Helm chart
+        uses: WyriHaximus/github-action-helm3@v3
+        with:
+          exec: helm upgrade --create-namespace -i madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }} ../../helm-charts/madkhol/ -f defaults.values.yaml,defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        if: startsWith(github.ref_name, 'feature/')
+
+
       - name: Update manifests images tag for ["dev", "stg", "prod"] branches
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
