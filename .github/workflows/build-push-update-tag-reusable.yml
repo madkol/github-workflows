@@ -167,7 +167,11 @@ jobs:
               ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           fi
         if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
-
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
+        with:
+          args: get pods
       - name: Deploy Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
@@ -188,7 +192,7 @@ jobs:
       - name: Delete Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
-          exec: helm delete --kube-context madkhol-dev madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
+          exec: helm delete madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
           kubeconfig: '${{ secrets.KUBECONFIG }}'
         if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
 
