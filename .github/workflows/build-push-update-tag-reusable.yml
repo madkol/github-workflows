@@ -176,7 +176,14 @@ jobs:
         if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
 
       ### Feature Branch Env ###
-      ### Delete Env###
+      ### Delete Env ###
+
+      - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
+        run: |
+          # Delete all files to this feature branch
+          find . -type -name "*${{ needs.build-push.outputs.ref_name_truncated }}*.yaml" -type f -delete
+        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
 
       - name: Delete Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
