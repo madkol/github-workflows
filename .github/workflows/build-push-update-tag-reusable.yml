@@ -1,4 +1,4 @@
-name: build-push-update-tag
+name: build-push-update-manifests
 
 env:
   REGISTRY: jed.ocir.io
@@ -125,7 +125,7 @@ jobs:
             REACT_APP_APPLE_PAY_MERCHANT_ID=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_ID }}
             REACT_APP_APPLE_PAY_MERCHANT_DISPLAY=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_DISPLAY }}
 
-  update-tag:
+  update-manifests:
     runs-on: ubuntu-latest
     needs: build-push
     steps:
@@ -144,6 +144,8 @@ jobs:
           separator: '-'
           maxsplit: '1'
 
+      ### Feature Branch Env ###
+      ### Deploy ###
       - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
         run: |
@@ -164,18 +166,33 @@ jobs:
               chmod 755 /usr/local/bin/gomplate
               ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           fi
-        if: startsWith(github.ref_name, 'feature/')
+        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
 
       - name: Deploy Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
           exec: helm upgrade --create-namespace -i madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }} ../../helm-charts/madkhol/ -f defaults.values.yaml,defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           kubeconfig: '${{ secrets.KUBECONFIG }}'
+        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
 
-          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
-        if: startsWith(github.ref_name, 'feature/')
+      ### Feature Branch Env ###
+      ### Delete Env###
 
+      - name: Delete Application Helm chart
+        uses: WyriHaximus/github-action-helm3@v3
+        with:
+          exec: helm delete --kube-context madkhol-dev madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
 
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
+        with:
+          args: delete namespace madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
+        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
+
+      ### dev, stg and prod envs
       - name: Update manifests images tag for ["dev", "stg", "prod"] branches
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
         run: |
