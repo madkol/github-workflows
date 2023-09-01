@@ -128,6 +128,8 @@ jobs:
   update-manifests:
     runs-on: ubuntu-latest
     needs: build-push
+    concurrency: 
+      group: update-manifests # to prevent this job from running multiple times at the sametime
     steps:
       - name: Checkout GitOps repository
         uses: actions/checkout@v3
@@ -191,7 +193,7 @@ jobs:
           exec: helm delete --kube-context madkhol-dev madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
           kubeconfig: '${{ secrets.KUBECONFIG }}'
         if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
-
+          
       - uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
