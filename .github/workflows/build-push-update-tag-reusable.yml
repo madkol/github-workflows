@@ -18,6 +18,9 @@ on:
       BASE_API_URL:
         required: false
         type: string
+      APP_BASE_URL:
+        required: false
+        type: string
       SENTRY_IGNORE_ERRORS:
         required: false
         type: string
@@ -45,6 +48,10 @@ on:
         required: false
         type: string
         default: 'Madkhol'
+      REACT_APP_SEGMENT_WRITE_KEY:
+        required: false
+        type: string
+        default: ''
 
     secrets:
       REGISTRY_USERNAME:
@@ -114,6 +121,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
+            APP_BASE_URL=${{ inputs.APP_BASE_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] || steps.prepare-vars.outputs.ref_name_truncated }}
             REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
@@ -124,6 +132,7 @@ jobs:
             REACT_APP_APPLE_PAY_VERSION_NUMBER=${{ inputs.REACT_APP_APPLE_PAY_VERSION_NUMBER }}
             REACT_APP_APPLE_PAY_MERCHANT_ID=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_ID }}
             REACT_APP_APPLE_PAY_MERCHANT_DISPLAY=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_DISPLAY }}
+            REACT_APP_SEGMENT_WRITE_KEY=${{ inputs.REACT_APP_SEGMENT_WRITE_KEY }}
 
   update-manifests:
     runs-on: ubuntu-latest
