@@ -75,8 +75,8 @@ jobs:
           short_sha=$(echo ${GITHUB_SHA} | cut -c1-8)
           echo "sha8=$short_sha" >> $GITHUB_OUTPUT
 
-          # Remove /feature Prefix from ${{ github.ref_name }}
-          ref_name=${{ github.ref_name }}
+          # Remove /feature Prefix from ${{ github.head_ref }}
+          ref_name=${{ github.head_ref }}
           ref_name_truncated=${ref_name#feature/}
           echo "ref_name_truncated=$ref_name_truncated" >> $GITHUB_OUTPUT
 
@@ -95,7 +95,7 @@ jobs:
           images: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}
 
       - name: Login to REGISTRY
-        if: startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
+        if: startsWith(github.head_ref, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
@@ -106,7 +106,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile
-          push: ${{ startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name) }}
+          push: ${{ startsWith(github.head_ref, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name) }}
           tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.prepare-vars.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
           # Couldn't find a way to make this accept any arbitrary variables, so it will assign all possible variables
@@ -128,7 +128,7 @@ jobs:
   update-manifests:
     runs-on: ubuntu-latest
     needs: build-push
-    concurrency: 
+    concurrency:
       group: update-manifests # to prevent this job from running multiple times at the sametime
     steps:
       - name: Checkout GitOps repository
@@ -168,14 +168,14 @@ jobs:
               chmod 755 /usr/local/bin/gomplate
               ENVIRONMENT_NAME=${{ needs.build-push.outputs.ref_name_truncated }} gomplate -f defaults-feature-branch-env.yaml.gotmpl > defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           fi
-        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
+        if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == false
 
       - name: Deploy Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
           exec: helm upgrade --kube-context madkhol-dev --create-namespace --dependency-update --timeout 15m -i madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }} helm-charts/madkhol/ -f helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults.values.yaml,helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           kubeconfig: '${{ secrets.KUBECONFIG }}'
-        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
+        if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == false
 
       ### Feature Branch Env ###
       ### Delete Env ###
@@ -185,21 +185,21 @@ jobs:
         run: |
           # Delete all files to this feature branch
           find . -type -name "*${{ needs.build-push.outputs.ref_name_truncated }}*.yaml" -type f -delete
-        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
+        if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == true
 
       - name: Delete Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
           exec: helm delete --kube-context madkhol-dev madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
           kubeconfig: '${{ secrets.KUBECONFIG }}'
-        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
-          
+        if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == true
+
       - uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
         with:
           args: --context madkhol-dev delete namespace madkhol-${{ needs.build-push.outputs.ref_name_truncated }}
-        if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == true
+        if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == true
 
       ### dev, stg and prod envs
       - name: Update manifests images tag for ["dev", "stg", "prod"] branches
@@ -212,4 +212,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply automatic changes for helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
-        if: startsWith(github.ref_name, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
+        if: startsWith(github.head_ref, 'feature/') || contains(fromJSON('["dev", "stg", "prod"]'), github.ref_name)
