@@ -173,7 +173,7 @@ jobs:
       - name: Deploy Application Helm chart
         uses: WyriHaximus/github-action-helm3@v3
         with:
-          exec: helm upgrade --kube-context madkhol-dev --create-namespace --dependency-update -i madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }} helm-charts/madkhol/ -f helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults.values.yaml,helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
+          exec: helm upgrade --kube-context madkhol-dev --create-namespace --dependency-update --timeout 15m -i madkhol-${{ needs.build-push.outputs.ref_name_truncated }} -n madkhol-${{ needs.build-push.outputs.ref_name_truncated }} helm-charts/madkhol/ -f helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults.values.yaml,helm-releases/${{ steps.split-repo-name.outputs._0 }}/defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml
           kubeconfig: '${{ secrets.KUBECONFIG }}'
         if: startsWith(github.ref_name, 'feature/') && github.event.pull_request.merged == false
 
