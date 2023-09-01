@@ -51,7 +51,6 @@ on:
       REACT_APP_SEGMENT_WRITE_KEY:
         required: false
         type: string
-        default: ''
 
     secrets:
       REGISTRY_USERNAME:
