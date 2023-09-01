@@ -45,6 +45,10 @@ on:
         required: false
         type: string
         default: 'Madkhol'
+      REACT_APP_SEGMENT_WRITE_KEY:
+        required: false
+        type: string
+        default: ''
 
     secrets:
       REGISTRY_USERNAME:
@@ -118,6 +122,7 @@ jobs:
             REACT_APP_APPLE_PAY_VERSION_NUMBER=${{ inputs.REACT_APP_APPLE_PAY_VERSION_NUMBER }}
             REACT_APP_APPLE_PAY_MERCHANT_ID=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_ID }}
             REACT_APP_APPLE_PAY_MERCHANT_DISPLAY=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_DISPLAY }}
+            REACT_APP_SEGMENT_WRITE_KEY=${{ inputs.REACT_APP_SEGMENT_WRITE_KEY }}
 
   update-tag:
     runs-on: ubuntu-latest
