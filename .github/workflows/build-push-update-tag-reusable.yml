@@ -144,7 +144,7 @@ jobs:
         with:
           repository: madkol/Infrastructure
           ssh-key: "${{ secrets.INFRA_REPO_SSH_KEY }}"
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.head_ref, 'feature/') || github.event_name != 'pull_request'
 
       - name: Split repository name
         uses: jungwinter/split@v2
