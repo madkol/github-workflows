@@ -159,8 +159,10 @@ jobs:
       - name: Update manifests images tag for feature branch ${{ needs.build-push.outputs.ref_name_truncated }}
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
         run: |
-          # Make sure all services have this eature branch files
+          # Make sure all services have this feature branch files
           find . -type d -exec touch {}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml \;
+
+          echo "Make sure all services have this feature branch files done"
 
           # if there is no image tag var add it otherwise update image tag using sed
           if ! grep -Ezq 'image:\n  tag: "[a-zA-Z0-9]{4,10}"' ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml ; then
@@ -170,6 +172,7 @@ jobs:
             # Update Helm values image tag
             sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' ${{ steps.split-repo-name.outputs._1 }}/${{ needs.build-push.outputs.ref_name_truncated }}.yaml
           fi
+          echo "if there is no image tag var add it otherwise update image tag using sed done"
 
           if [[ ! -e defaults-${{ needs.build-push.outputs.ref_name_truncated }}.values.yaml ]]; then
               curl -o /usr/local/bin/gomplate -sSL https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_linux-amd64-slim
@@ -192,7 +195,7 @@ jobs:
         working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}
         run: |
           # Delete all files to this feature branch
-          find . -type -name "*${{ needs.build-push.outputs.ref_name_truncated }}*.yaml" -type f -delete
+          find . -name "*${{ needs.build-push.outputs.ref_name_truncated }}*.yaml" -type f -delete
         if: startsWith(github.head_ref, 'feature/') && github.event.pull_request.merged == true
 
       - name: Delete Application Helm chart
