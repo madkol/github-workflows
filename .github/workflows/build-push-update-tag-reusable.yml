@@ -21,6 +21,9 @@ on:
       APP_BASE_URL:
         required: false
         type: string
+      REACT_APP_WEBSITE_BASE_URL:
+        required: false
+        type: string
       SENTRY_IGNORE_ERRORS:
         required: false
         type: string
@@ -119,6 +122,7 @@ jobs:
             SITE_URL=${{ inputs.SITE_URL }}
             BASE_API_URL=${{ inputs.BASE_API_URL }}
             APP_BASE_URL=${{ inputs.APP_BASE_URL }}
+            REACT_APP_WEBSITE_BASE_URL=${{ inputs.REACT_APP_WEBSITE_BASE_URL }}
             REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
             REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] }}
             REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
