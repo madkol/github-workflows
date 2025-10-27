@@ -103,6 +103,15 @@ on:
       REACT_APP_FIREBASE_MEASUREMENT_ID:
         required: false
         type: string
+      NEXT_PUBLIC_EMAILJS_SERVICE_ID:
+        required: false
+        type: string
+      NEXT_PUBLIC_EMAILJS_TEMPLATE_ID:
+        required: false
+        type: string
+      NEXT_PUBLIC_EMAILJS_PUBLIC_KEY:
+        required: false
+        type: string
 
     secrets:
       REGISTRY_USERNAME:
@@ -190,6 +199,9 @@ jobs:
             REACT_APP_APPLE_PAY_MERCHANT_DISPLAY=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_DISPLAY }}
             REACT_APP_SEGMENT_WRITE_KEY=${{ inputs.REACT_APP_SEGMENT_WRITE_KEY }}
             REACT_APP_REGISTER_SW=${{ inputs.REACT_APP_REGISTER_SW }}
+            NEXT_PUBLIC_EMAILJS_SERVICE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+            NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+            NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
 
   update-tag:
     runs-on: ubuntu-latest
