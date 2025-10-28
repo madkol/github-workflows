@@ -148,6 +148,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v4
@@ -169,6 +170,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/axvp4vawnqyw/${{ github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Couldn't find a way to make this accept any arbitrary variables, so it will assign all possible variables
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             SITE_URL=${{ inputs.SITE_URL }}
@@ -213,4 +215,35 @@ jobs:
         if: github.event_name != 'pull_request'
 
       - name: Split repository name
-        uses: jungwinter/s
+        uses: jungwinter/split@v2
+        id: split-repo-name
+        with:
+          msg: ${{ github.event.repository.name }}
+          separator: '-'
+          maxsplit: '1'
+
+      - name: Update manifests images tag for dev
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        run: |
+          # Change Helm values image tag
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' dev.yaml
+        if: github.ref_name == 'dev'
+
+      - name: Update manifests images tag for stg
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        run: |
+          # Change Helm values image tag
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' stg.yaml
+        if: github.ref_name == 'stg'
+
+      - name: Update manifests images tag for prod
+        working-directory: helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        run: |
+          # Change Helm values image tag
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' prod.yaml
+        if: github.ref_name == 'prod'
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply automatic changes for helm-releases/${{ steps.split-repo-name.outputs._0 }}/${{ steps.split-repo-name.outputs._1 }}
+        if: github.event_name != 'pull_request'
