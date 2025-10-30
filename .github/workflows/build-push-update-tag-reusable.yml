@@ -112,6 +112,9 @@ on:
       NEXT_PUBLIC_EMAILJS_PUBLIC_KEY:
         required: false
         type: string
+      JWT_THRIFT_ADMIN_SECRET:
+        required: false
+        type: string  
 
     secrets:
       REGISTRY_USERNAME:
@@ -202,6 +205,7 @@ jobs:
             NEXT_PUBLIC_EMAILJS_SERVICE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
             NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
             NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+            JWT_THRIFT_ADMIN_SECRET=${{ secrets.JWT_THRIFT_ADMIN_SECRET }}
 
   update-tag:
     runs-on: ubuntu-latest
