@@ -115,12 +115,6 @@ on:
       JWT_THRIFT_ADMIN_SECRET:
         required: false
         type: string  
-      VITE_API_BASE_URL:
-        required: false
-        type: string  
-      VITE_APP_ENV:
-        required: false
-        type: string 
         
     secrets:
       REGISTRY_USERNAME:
@@ -212,9 +206,7 @@ jobs:
             NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
             NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
             JWT_THRIFT_ADMIN_SECRET=${{ secrets.JWT_THRIFT_ADMIN_SECRET }}
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_APP_ENV=${{ secrets.VITE_APP_ENV }}            
-
+          
   update-tag:
     runs-on: ubuntu-latest
     needs: build-push
