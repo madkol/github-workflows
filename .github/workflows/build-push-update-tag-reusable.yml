@@ -212,8 +212,8 @@ jobs:
             NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
             NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
             JWT_THRIFT_ADMIN_SECRET=${{ secrets.JWT_THRIFT_ADMIN_SECRET }}
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_APP_ENV=${{ secrets.VITE_APP_ENV }}  
+            VITE_API_BASE_URL=${{ inputs.VITE_API_BASE_URL }}
+            VITE_APP_ENV=${{ inputs.VITE_APP_ENV }}  
           
   update-tag:
     runs-on: ubuntu-latest
