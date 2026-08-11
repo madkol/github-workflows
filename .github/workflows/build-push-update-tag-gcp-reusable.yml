@@ -70,6 +70,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          token_format: 'access_token'
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Login to Artifact Registry
