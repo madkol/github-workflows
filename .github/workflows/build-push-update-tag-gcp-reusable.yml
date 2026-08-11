@@ -62,7 +62,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_PATH }}/madkhol-${{ inputs.service_name || github.event.repository.name }}
+          images: ${{ env.REGISTRY }}/${{ env.REPO_PATH }}/${{ inputs.service_name || github.event.repository.name }}
 
       - id: auth
         name: Authenticate to Google Cloud
@@ -87,7 +87,7 @@ jobs:
           context: ${{ inputs.service_path != '' && format('./{0}', inputs.service_path) || '.' }}
           file: ${{ inputs.service_path != '' && format('./{0}/Dockerfile', inputs.service_path) || 'Dockerfile' }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.REPO_PATH }}/madkhol-${{ inputs.service_name || github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
+          tags: ${{ env.REGISTRY }}/${{ env.REPO_PATH }}/${{ inputs.service_name || github.event.repository.name }}:${{ steps.get-sha8.outputs.sha8 }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
