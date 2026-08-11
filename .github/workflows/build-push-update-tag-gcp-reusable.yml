@@ -35,6 +35,10 @@ on:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
     outputs:
       sha8: ${{ steps.get-sha8.outputs.sha8 }}
 
