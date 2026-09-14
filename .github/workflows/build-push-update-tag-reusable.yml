@@ -220,6 +220,7 @@ jobs:
             JWT_THRIFT_ADMIN_SECRET=${{ secrets.JWT_THRIFT_ADMIN_SECRET }}
             VITE_API_BASE_URL=${{ inputs.VITE_API_BASE_URL }}
             VITE_APP_ENV=${{ inputs.VITE_APP_ENV }}  
+            NEXT_PUBLIC_EMAILJS_SOLVENCY_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SOLVENCY_TEMPLATE_ID }}
           
   update-tag:
     runs-on: ubuntu-latest
