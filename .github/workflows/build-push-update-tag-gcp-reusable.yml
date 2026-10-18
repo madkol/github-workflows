@@ -5,6 +5,13 @@ env:
   # PROJECT_ID/REPOSITORY — confirm workload_project_id once terraform.tfvars
   # is filled in; "madkhol" repository_id comes from envs/prod/main.tf
   REPO_PATH: madkhol-workload-prod/madkhol
+  env_var_name_mapping: >
+    {
+      "prod": "production",
+      "prod-gcp": "production",
+      "stg": "staging",
+      "dev": "development",
+    }
 
 on:
   workflow_call:
@@ -15,6 +22,115 @@ on:
         required: false
         type: string
       service_path:
+        required: false
+        type: string
+      SITE_URL:
+        required: false
+        type: string
+      BASE_API_URL:
+        required: false
+        type: string
+      APP_BASE_URL:
+        required: false
+        type: string
+      REACT_APP_WEBSITE_BASE_URL:
+        required: false
+        type: string
+      SENTRY_IGNORE_ERRORS:
+        required: false
+        type: string
+      SENTRY_DEBUG:
+        required: false
+        type: string
+        default: 'false'
+      SENTRY_TRACES_SAMPLE_RATE:
+        required: false
+        type: string
+        default: '0.1'
+      REPLAYS_ON_ERROR_SAMPLE_RATE:
+        required: false
+        type: string
+        default: '0.1'
+      REACT_APP_APPLE_PAY_VERSION_NUMBER:
+        required: false
+        type: string
+        default: '3'
+      REACT_APP_APPLE_PAY_MERCHANT_ID:
+        required: false
+        type: string
+        default: 'madkhol'
+      REACT_APP_APPLE_PAY_MERCHANT_DISPLAY:
+        required: false
+        type: string
+        default: 'Madkhol'
+      REACT_APP_SEGMENT_WRITE_KEY:
+        required: false
+        type: string
+      REACT_APP_REGISTER_SW:
+        required: false
+        type: string
+        default: 'true'
+      REACT_APP_SENTRY_DSN:
+        required: false
+        type: string
+      REACT_APP_SENTRY_IGNORE_ERRORS:
+        required: false
+        type: string
+      REACT_APP_SENTRY_TRACES_SAMPLE_RATE:
+        required: false
+        type: string
+      REACT_APP_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE:
+        required: false
+        type: string
+      REACT_APP_SENTRY_DEBUG:
+        required: false
+        type: string
+      REACT_APP_MICROSOFT_CLARITY:
+        required: false
+        type: string
+      REACT_APP_GOOGLE_ANALYTICS:
+        required: false
+        type: string
+      REACT_APP_MIXPANEL_TOKEN:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_API_KEY:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_AUTH_DOMAIN:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_PROJECT_ID:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_STORAGE_BUCKET:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_MESSAGING_SENDER_ID:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_APP_ID:
+        required: false
+        type: string
+      REACT_APP_FIREBASE_MEASUREMENT_ID:
+        required: false
+        type: string
+      NEXT_PUBLIC_EMAILJS_SERVICE_ID:
+        required: false
+        type: string
+      NEXT_PUBLIC_EMAILJS_TEMPLATE_ID:
+        required: false
+        type: string
+      NEXT_PUBLIC_EMAILJS_PUBLIC_KEY:
+        required: false
+        type: string
+      JWT_THRIFT_ADMIN_SECRET:
+        required: false
+        type: string
+      VITE_API_BASE_URL:
+        required: false
+        type: string
+      VITE_APP_ENV:
         required: false
         type: string
       # <<< keep every other existing input exactly as-is >>>
@@ -91,8 +207,39 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
-            # <<< every existing build-arg unchanged — all app config, none
-            #     of it registry- or cloud-specific >>>
+            SITE_URL=${{ inputs.SITE_URL }}
+            BASE_API_URL=${{ inputs.BASE_API_URL }}
+            APP_BASE_URL=${{ inputs.APP_BASE_URL }}
+            REACT_APP_WEBSITE_BASE_URL=${{ inputs.REACT_APP_WEBSITE_BASE_URL }}
+            REACT_APP_BASE_API_URL=${{ inputs.BASE_API_URL }}
+            REACT_APP_ENVIRONMENT=${{ fromJSON(env.env_var_name_mapping)[github.ref_name] }}
+            REACT_APP_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            REACT_APP_SENTRY_DEBUG=${{ inputs.SENTRY_DEBUG }}
+            REACT_APP_SENTRY_IGNORE_ERRORS=${{ inputs.SENTRY_IGNORE_ERRORS }}
+            REACT_APP_SENTRY_TRACES_SAMPLE_RATE=${{ inputs.SENTRY_TRACES_SAMPLE_RATE }}
+            REACT_APP_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE=${{ inputs.REPLAYS_ON_ERROR_SAMPLE_RATE }}
+            REACT_APP_MICROSOFT_CLARITY=${{ secrets.REACT_APP_MICROSOFT_CLARITY }}
+            REACT_APP_GOOGLE_ANALYTICS=${{ secrets.REACT_APP_GOOGLE_ANALYTICS }}
+            REACT_APP_MIXPANEL_TOKEN=${{ secrets.REACT_APP_MIXPANEL_TOKEN }}
+            REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}
+            REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+            REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+            REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+            REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+            REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}
+            REACT_APP_FIREBASE_MEASUREMENT_ID=${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}
+            REACT_APP_APPLE_PAY_VERSION_NUMBER=${{ inputs.REACT_APP_APPLE_PAY_VERSION_NUMBER }}
+            REACT_APP_APPLE_PAY_MERCHANT_ID=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_ID }}
+            REACT_APP_APPLE_PAY_MERCHANT_DISPLAY=${{ inputs.REACT_APP_APPLE_PAY_MERCHANT_DISPLAY }}
+            REACT_APP_SEGMENT_WRITE_KEY=${{ inputs.REACT_APP_SEGMENT_WRITE_KEY }}
+            REACT_APP_REGISTER_SW=${{ inputs.REACT_APP_REGISTER_SW }}
+            NEXT_PUBLIC_EMAILJS_SERVICE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+            NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
+            NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+            JWT_THRIFT_ADMIN_SECRET=${{ secrets.JWT_THRIFT_ADMIN_SECRET }}
+            VITE_API_BASE_URL=${{ inputs.VITE_API_BASE_URL }}
+            VITE_APP_ENV=${{ inputs.VITE_APP_ENV }}
+            NEXT_PUBLIC_EMAILJS_SOLVENCY_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SOLVENCY_TEMPLATE_ID }}
 
   update-tag:
     # Only ever touches helm-releases/madkhol-gcp/ — never the original
