@@ -11,6 +11,8 @@ env:
       "prod-gcp": "production",
       "stg": "staging",
       "dev": "development",
+      "dev-gcp": "development",
+      "stg-gcp": "staging",
     }
 
 on:
@@ -263,10 +265,15 @@ jobs:
           separator: '-'
           maxsplit: '1'
 
-      - name: Update GCP prod tag only — production-only scope, no dev/stg branch
+      - name: Update GCP tag (dev-gcp -> dev.yaml, stg-gcp -> stg.yaml, else -> prod.yaml)
         working-directory: GCP/helm-releases/madkhol-gcp/${{ steps.split-repo-name.outputs._1 }}
         run: |
-          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' prod.yaml
+          case "${{ github.ref_name }}" in
+            dev-gcp) VALUES_FILE=dev.yaml ;;
+            stg-gcp) VALUES_FILE=stg.yaml ;;
+            *)       VALUES_FILE=prod.yaml ;;
+          esac
+          sed -i --regexp-extended 's|^  tag: "[a-zA-Z0-9]{4,10}"|  tag: "${{ needs.build-push.outputs.sha8 }}"|g' "$VALUES_FILE"
         if: github.event_name != 'pull_request'
 
       - uses: stefanzweifel/git-auto-commit-action@v4
